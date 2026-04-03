@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bakery Tracker</title>
+  <style>
+    :root{
+      --bg:#0d0a07;
+      --surface:#1a1208;
+      --surface-2:#24180d;
+      --surface-3:#2d1d0e;
+      --border:#45331d;
+      --text:#fef3c7;
+      --muted:#c7a982;
+      --amber:#f59e0b;
+      --amber-soft:#fbbf24;
+      --green:#22c55e;
+      --red:#ef4444;
+      --cookie:#fb923c;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      color:var(--text);
+      font-family:Arial,sans-serif;
+      background:
+        radial-gradient(circle at top,#3b220b 0,#140d07 34%,#0d0a07 72%),
+        var(--bg);
+    }
+    .shell{max-width:1180px;margin:0 auto;padding:28px 18px 52px}
+    .hero,.card{
+      background:linear-gradient(180deg,rgba(35,24,13,.96),rgba(22,15,9,.96));
+      border:1px solid var(--border);
+      border-radius:24px;
+      box-shadow:0 24px 70px rgba(0,0,0,.35);
+    }
+    .hero{padding:28px}
+    .eyebrow{
+      color:var(--amber);
+      text-transform:uppercase;
+      letter-spacing:.2em;
+      font-size:12px;
+      margin-bottom:10px;
+    }
+    h1{margin:0;font-size:clamp(34px,6vw,60px);line-height:1}
+    .sub{max-width:780px;margin-top:14px;color:var(--muted);line-height:1.6;font-size:16px}
+    .search-wrap{margin-top:22px}
+    .search-row{display:grid;grid-template-columns:1fr auto;gap:10px}
+    input{
+      width:100%;border-radius:14px;border:1px solid var(--border);
+      background:var(--surface-2);color:var(--text);padding:15px 16px;font-size:15px;outline:none;
+    }
+    input:focus{border-color:var(--amber)}
+    button{
+      border:0;border-radius:14px;background:var(--amber);color:#140d07;
+      font-weight:700;cursor:pointer;padding:13px 18px;
+    }
+    .ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+    .hero-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+    .tile,.stat,.bakery-row,.note{
+      background:rgba(13,10,7,.48);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:16px;
+    }
+    .tile-label,.stat-label,.mini-label{
+      color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.16em;
+    }
+    .tile-value,.stat-value{
+      margin-top:8px;font-size:28px;font-weight:700;color:var(--amber-soft);
+    }
+    .layout{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;margin-top:18px}
+    .card{padding:22px}
+    .section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+    .section-title{margin:0;font-size:18px}
+    .meta,.hint,.footnote{color:var(--muted);font-size:13px;line-height:1.6}
+    .status{
+      margin-top:12px;padding:12px 14px;border-radius:12px;border:1px solid var(--border);
+      background:var(--surface-2);color:var(--muted);font-size:13px;display:none
+    }
+    .status.show{display:block}
+    .status.error{color:#ffd3d3;border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.08)}
+    .status.success{color:#c7f9d5;border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.08)}
+    .status.warn{color:#ffe6af;border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.08)}
+    .player{display:none}
+    .player.show{display:block}
+    .player-head{display:flex;gap:14px;align-items:center;margin-bottom:16px}
+    .avatar{
+      width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+      background:var(--surface-3);border:1px solid var(--border);color:var(--amber-soft);font-weight:700
+    }
+    .player-name{font-size:22px;font-weight:700}
+    .player-meta{margin-top:4px;color:var(--muted);font-size:13px;line-height:1.5;word-break:break-word}
+    .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .stat-value{font-size:24px}
+    .cookie{color:var(--cookie)}
+    .amber{color:var(--amber-soft)}
+    .positive{color:var(--green)}
+    .negative{color:var(--red)}
+    .list{display:grid;gap:10px}
+    .bakery-row{
+      display:grid;grid-template-columns:auto 1fr auto auto;gap:12px;align-items:center;padding:14px
+    }
+    .rank{
+      width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+      border-radius:12px;background:var(--surface-3);font-weight:700;color:var(--amber-soft)
+    }
+    .bakery-name{font-weight:700;font-size:16px}
+    .bakery-sub{margin-top:4px;color:var(--muted);font-size:13px}
+    .bakery-cookies{color:var(--cookie);font-weight:700;font-size:14px;white-space:nowrap}
+    .bakery-payout{color:var(--amber-soft);font-weight:700;font-size:14px;white-space:nowrap}
+    .note{margin-top:10px}
+    .split{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .mini-value{margin-top:6px;font-size:18px;font-weight:700}
+    code{color:#ffdca3}
+    @media (max-width: 900px){
+      .hero-grid,.layout,.split{grid-template-columns:1fr}
+    }
+    @media (max-width: 640px){
+      .search-row,.stats{grid-template-columns:1fr}
+      .bakery-row{grid-template-columns:auto 1fr}
+      .bakery-cookies,.bakery-payout{grid-column:2}
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="eyebrow">Rugpull Bakery ROI Dashboard</div>
+      <h1>See COOK, current payout and the path to real ROI.</h1>
+      <p class="sub">
+        Enter a wallet address or an Abstract portal name. This Phase 1 build focuses on the live public data:
+        active season, leaderboard, player bakery snapshot and current payout estimate.
+      </p>
+      <div class="search-wrap">
+        <div class="search-row">
+          <input id="searchInput" placeholder="0x... wallet address or portal name">
+          <button id="lookupBtn">Analyze Player</button>
+        </div>
+        <div class="hint">
+          Wallet lookup is live now. Portal-name lookup is attempted through Portal search and falls back cleanly if the profile cannot be resolved.
+        </div>
+        <div class="status" id="playerStatus"></div>
+      </div>
+      <div class="hero-grid">
+        <div class="tile">
+          <div class="tile-label">Current Prize Pool</div>
+          <div class="tile-value" id="heroPool">Loading...</div>
+        </div>
+        <div class="tile">
+          <div class="tile-label">Season</div>
+          <div class="tile-value" id="heroSeason">--</div>
+        </div>
+        <div class="tile">
+          <div class="tile-label">Registrations</div>
+          <div class="tile-value" id="heroRegs">--</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="card">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Player ROI Panel</h2>
+            <div class="meta">Current COOK, bakery context, payout estimate and ROI readiness.</div>
+          </div>
+        </div>
+
+        <div class="player" id="playerPanel">
+          <div class="player-head">
+            <div class="avatar" id="playerAvatar">BT</div>
+            <div>
+              <div class="player-name" id="playerName">Player</div>
+              <div class="player-meta" id="playerMeta"></div>
+            </div>
+          </div>
+
+          <div class="stats" id="playerStats"></div>
+
+          <div class="split">
+            <div class="note">
+              <div class="mini-label">Real Tx Fee</div>
+              <div class="mini-value" id="txFeeValue">Coming soon</div>
+              <div class="meta">This needs explorer or indexer support. It is the next major product step.</div>
+            </div>
+            <div class="note">
+              <div class="mini-label">Net Position</div>
+              <div class="mini-value" id="netValue">Waiting for tx fee</div>
+              <div class="meta">Estimated payout is live. Final ROI will become exact once real fee tracking is added.</div>
+            </div>
+          </div>
+
+          <div class="note">
+            <div class="mini-label">Phase Status</div>
+            <div class="mini-value">Phase 1 live public data</div>
+            <div class="footnote">
+              What is live now: wallet lookup, active season, leaderboard rank, current prize pool and estimated payout.
+              What is not done yet: exact real transaction-fee cost and fully reliable portal-name resolution for every user.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Live Leaderboard</h2>
+            <div class="meta">Top bakeries with current pool-based payout estimate.</div>
+          </div>
+          <button class="ghost" id="refreshBtn">Refresh</button>
+        </div>
+        <div class="status" id="leaderboardStatus"></div>
+        <div class="list" id="leaderboardList"></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const PROXY = "/api/proxy?url=";
+    const TRPC = "https://www.rugpullbakery.com/api/trpc";
+    const PORTAL = "https://backend.portal.abs.xyz/api";
+    const ABSCOPE_SUGGEST = "https://abscope.live/api/suggest";
+    const PAYOUT_SPLITS = [0.7, 0.2, 0.1];
+
+    const state = { season: null, bakeries: [], poolEth: null, registrations: null };
+
+    function setStatus(el, msg, tone) {
+      if (!msg) { el.className = "status"; el.textContent = ""; return; }
+      el.className = "status show" + (tone ? " " + tone : "");
+      el.textContent = msg;
+    }
+
+    async function proxyFetch(url) {
+      const r = await fetch(PROXY + encodeURIComponent(url));
+      const ct = r.headers.get("content-type") || "";
+      const payload = ct.includes("application/json") ? await r.json() : await r.text();
+      if (!r.ok) throw new Error(typeof payload === "string" ? payload : payload?.message || payload?.error || JSON.stringify(payload));
+      return payload;
+    }
+
+    async function trpcJson(proc, input) {
+      const inp = JSON.stringify({ 0: { json: input === undefined ? null : input } });
+      return proxyFetch(TRPC + "/" + proc + "?batch=1&input=" + encodeURIComponent(inp));
+    }
+
+    async function trpcRaw(proc, input) {
+      const inp = JSON.stringify({ 0: input });
+      return proxyFetch(TRPC + "/" + proc + "?batch=1&input=" + encodeURIComponent(inp));
+    }
+
+    function extractJson(payload) {
+      try {
+        const arr = Array.isArray(payload) ? payload : [payload];
+        return arr[0].result.data.json;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function toNumber(v) {
+      if (v === null || v === undefined || v === "") return null;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function fmtNum(v, d = 0) {
+      const n = toNumber(v);
+      if (n === null) return "--";
+      return n.toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: d > 0 ? Math.min(2, d) : 0 });
+    }
+
+    function fmtEth(v, d = 4) {
+      const n = toNumber(v);
+      return n === null ? "--" : n.toFixed(d) + " ETH";
+    }
+
+    function shortAddr(v) { return v ? v.slice(0, 6) + "..." + v.slice(-4) : "--"; }
+    function initials(v) { const c = (v || "").replace(/[^a-zA-Z0-9]/g, "").slice(0, 2); return c ? c.toUpperCase() : "BT"; }
+    function isWallet(v) { return /^0x[a-fA-F0-9]{40}$/.test(v); }
+    function esc(v) { return String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+
+    async function resolvePortalName(query) {
+      try {
+        const suggestRes = await fetch(
+          `${ABSCOPE_SUGGEST}?query=${encodeURIComponent(query)}&suggest=1&limit=6`
+        );
+        if (suggestRes.ok) {
+          const suggestData = await suggestRes.json();
+          const suggestions = suggestData?.suggestions || [];
+          if (Array.isArray(suggestions) && suggestions.length) {
+            const exact = suggestions.find((item) =>
+              (item.username || "").toLowerCase() === query.toLowerCase()
+            ) || suggestions[0];
+
+            if (exact?.resolvedWallet) {
+              return {
+                address: exact.resolvedWallet,
+                profile: {
+                  name: exact.username,
+                  username: exact.username,
+                  overrideProfilePictureUrl: exact.avatar || null,
+                },
+              };
+            }
+          }
+        }
+      } catch (e) {}
+
+      const endpoints = [
+        `${PORTAL}/search/users?q=${encodeURIComponent(query)}&limit=5`,
+        `${PORTAL}/search/users?query=${encodeURIComponent(query)}&limit=5`
+      ];
+
+      for (const url of endpoints) {
+        try {
+          const payload = await proxyFetch(url);
+          const users = payload?.users || payload?.results || payload?.items || [];
+          if (Array.isArray(users) && users.length) {
+            const candidate = users.find((user) => {
+              const name = (user.name || user.username || "").toLowerCase();
+              return name === query.toLowerCase();
+            }) || users[0];
+            const address = candidate.walletAddress || candidate.address || candidate.wallet || null;
+            if (address) return { address, profile: candidate };
+          }
+        } catch (e) {}
+      }
+
+      throw new Error("Portal name could not be resolved from Abscope or Portal search.");
+    }
+
+    function renderLeaderboard() {
+      const list = document.getElementById("leaderboardList");
+      document.getElementById("heroSeason").textContent = state.season?.id ? "#" + state.season.id : "--";
+      document.getElementById("heroPool").textContent = state.poolEth === null ? "Unavailable" : fmtEth(state.poolEth, 4);
+      document.getElementById("heroRegs").textContent = fmtNum(state.registrations, 0);
+
+      if (!state.bakeries.length) {
+        list.innerHTML = '<div class="meta">No bakery data returned.</div>';
+        return;
+      }
+
+      list.innerHTML = state.bakeries.slice(0, 10).map((b, i) => {
+        const rank = i + 1;
+        const payout = state.poolEth !== null && rank <= 3 ? state.poolEth * PAYOUT_SPLITS[rank - 1] : null;
+        const cookies = toNumber(b.txCount) ?? toNumber(b.rawTxCount) ?? 0;
+        return `<div class="bakery-row">
+          <div class="rank">#${rank}</div>
+          <div>
+            <div class="bakery-name">${esc(b.name || "Bakery #" + rank)}</div>
+            <div class="bakery-sub">ID: ${esc(b.id ?? "--")} | Members: ${esc(fmtNum(b.memberCount, 0))}</div>
+          </div>
+          <div class="bakery-cookies">${esc(fmtNum(cookies, 0))}</div>
+          <div class="bakery-payout">${esc(payout === null ? "--" : fmtEth(payout, 4))}</div>
+        </div>`;
+      }).join("");
+    }
+
+    async function loadLeaderboard() {
+      const status = document.getElementById("leaderboardStatus");
+      setStatus(status, "Loading live season and leaderboard...", "");
+      try {
+        const [seasonRaw, topRaw] = await Promise.all([
+          trpcJson("leaderboard.getActiveSeason"),
+          trpcJson("leaderboard.getTopBakeries", { limit: 10 })
+        ]);
+        const seasonJson = extractJson(seasonRaw);
+        const topJson = extractJson(topRaw);
+        state.season = Array.isArray(seasonJson) ? seasonJson[0] : seasonJson;
+        state.bakeries = topJson?.items || (Array.isArray(topJson) ? topJson : []);
+        const prizePool = toNumber(state.season?.prizePool);
+        state.poolEth = prizePool !== null ? prizePool / 1e18 : null;
+        state.registrations = toNumber(state.season?.registrations);
+        renderLeaderboard();
+        setStatus(status, "Leaderboard updated.", "success");
+      } catch (e) {
+        document.getElementById("leaderboardList").innerHTML = "";
+        setStatus(status, "Leaderboard failed: " + e.message, "error");
+      }
+    }
+
+    function renderPlayer(bakeryInit, profile, address) {
+      const panel = document.getElementById("playerPanel");
+      const bakeryId = bakeryInit?.bakery?.id ?? bakeryInit?.clan?.id ?? null;
+      const bakeryName = bakeryInit?.bakery?.name ?? bakeryInit?.clan?.name ?? "No bakery found";
+      const currentCook =
+        toNumber(bakeryInit?.player?.effectiveTxCount) ??
+        toNumber(bakeryInit?.player?.txCount) ??
+        toNumber(bakeryInit?.player?.bakedTxCount) ??
+        toNumber(bakeryInit?.player?.cookies) ??
+        0;
+      const hasActiveBakery = Boolean(bakeryInit?.player || bakeryInit?.bakery || bakeryInit?.clan);
+      let rank = 0;
+      if (bakeryId) {
+        const idx = state.bakeries.findIndex((b) => String(b.id) === String(bakeryId));
+        rank = idx >= 0 ? idx + 1 : 0;
+      }
+      const payout = rank > 0 && rank <= 3 && state.poolEth !== null ? state.poolEth * PAYOUT_SPLITS[rank - 1] : null;
+      const name = profile?.name || profile?.username || shortAddr(address);
+      const avatar = profile?.overrideProfilePictureUrl || profile?.profilePictureUrl || profile?.avatar || null;
+
+      const avatarEl = document.getElementById("playerAvatar");
+      avatarEl.textContent = initials(name);
+      if (avatar) {
+        avatarEl.style.backgroundImage = `url("${avatar}")`;
+        avatarEl.style.backgroundSize = "cover";
+        avatarEl.style.backgroundPosition = "center";
+        avatarEl.style.color = "transparent";
+      } else {
+        avatarEl.style.backgroundImage = "none";
+        avatarEl.style.color = "";
+      }
+      document.getElementById("playerName").textContent = name;
+      document.getElementById("playerMeta").textContent =
+        address + " | Bakery: " + bakeryName + " | Rank: " + (rank > 0 ? "#" + rank : "Unranked / outside top 10");
+
+      const stats = [
+        { label: "Current COOK", value: fmtNum(currentCook, 0), tone: "cookie" },
+        { label: "Bakery Rank", value: rank > 0 ? "#" + rank : "--", tone: rank > 0 && rank <= 3 ? "amber" : "" },
+        { label: "Current Prize Pool", value: state.poolEth !== null ? fmtEth(state.poolEth, 4) : "--", tone: "amber" },
+        { label: "Estimated Payout", value: payout !== null ? fmtEth(payout, 4) : "--", tone: payout !== null ? "amber" : "" }
+      ];
+
+      document.getElementById("playerStats").innerHTML = stats.map((s) =>
+        `<div class="stat"><div class="stat-label">${esc(s.label)}</div><div class="stat-value ${s.tone || ""}">${esc(s.value)}</div></div>`
+      ).join("");
+
+      document.getElementById("txFeeValue").textContent = hasActiveBakery ? "Needs explorer data" : "No active bakery data";
+      document.getElementById("netValue").textContent = hasActiveBakery
+        ? (payout !== null ? "Payout ready, fee missing" : "Waiting for payout + fee")
+        : "Player not active in current season";
+      panel.classList.add("show");
+    }
+
+    async function analyzePlayer() {
+      const raw = document.getElementById("searchInput").value.trim();
+      const status = document.getElementById("playerStatus");
+      const panel = document.getElementById("playerPanel");
+      panel.classList.remove("show");
+
+      if (!raw) {
+        setStatus(status, "Enter a wallet address or portal name.", "error");
+        return;
+      }
+
+      setStatus(status, "Resolving player...", "");
+
+      try {
+        let address = raw;
+        let profile = null;
+
+        if (!isWallet(raw)) {
+          setStatus(status, "Resolving portal name...", "warn");
+          const resolved = await resolvePortalName(raw);
+          address = resolved.address;
+          profile = resolved.profile || null;
+        }
+
+        if (!isWallet(address)) {
+          throw new Error("A valid wallet could not be resolved.");
+        }
+
+        const [bakeryRes, rugProfileRes, portalRes] = await Promise.allSettled([
+          trpcJson("leaderboard.getMyBakeryInit", { address }),
+          trpcJson("profiles.getByAddress", { address }),
+          proxyFetch(PORTAL + "/user/address/" + encodeURIComponent(address)).catch(() => null)
+        ]);
+
+        const bakeryRaw = bakeryRes.status === "fulfilled" ? bakeryRes.value : null;
+        const rugProfileRaw = rugProfileRes.status === "fulfilled" ? rugProfileRes.value : null;
+        const portalRaw = portalRes.status === "fulfilled" ? portalRes.value : null;
+
+        const bakeryInit = bakeryRaw ? extractJson(bakeryRaw) : null;
+        profile = profile || (rugProfileRaw ? extractJson(rugProfileRaw) : null) || portalRaw?.user || portalRaw || null;
+
+        if (!bakeryInit && !profile) {
+          throw new Error("No public player data was found for this input.");
+        }
+
+        renderPlayer(bakeryInit, profile, address);
+        setStatus(status, "Player panel updated.", "success");
+      } catch (e) {
+        setStatus(status, "Lookup failed: " + e.message, "error");
+      }
+    }
+
+    document.getElementById("refreshBtn").addEventListener("click", loadLeaderboard);
+    document.getElementById("lookupBtn").addEventListener("click", analyzePlayer);
+    document.getElementById("searchInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") analyzePlayer();
+    });
+
+    loadLeaderboard();
+  </script>
+</body>
+</html>
