@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bakery Tracker</title>
+  <style>
+    :root{
+      --bg:#0d0a07;
+      --surface:#1a1208;
+      --surface-2:#24180d;
+      --surface-3:#2d1d0e;
+      --border:#45331d;
+      --text:#fef3c7;
+      --muted:#c7a982;
+      --amber:#f59e0b;
+      --amber-soft:#fbbf24;
+      --green:#22c55e;
+      --red:#ef4444;
+      --cookie:#fb923c;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      color:var(--text);
+      font-family:Arial,sans-serif;
+      background:
+        radial-gradient(circle at top,#3b220b 0,#140d07 34%,#0d0a07 72%),
+        var(--bg);
+    }
+    .shell{max-width:1180px;margin:0 auto;padding:28px 18px 52px}
+    .hero,.card{
+      background:linear-gradient(180deg,rgba(35,24,13,.96),rgba(22,15,9,.96));
+      border:1px solid var(--border);
+      border-radius:24px;
+      box-shadow:0 24px 70px rgba(0,0,0,.35);
+    }
+    .hero{padding:28px}
+    .eyebrow{
+      color:var(--amber);
+      text-transform:uppercase;
+      letter-spacing:.2em;
+      font-size:12px;
+      margin-bottom:10px;
+    }
+    h1{margin:0;font-size:clamp(34px,6vw,60px);line-height:1}
+    .sub{max-width:780px;margin-top:14px;color:var(--muted);line-height:1.6;font-size:16px}
+    .search-wrap{margin-top:22px}
+    .search-row{display:grid;grid-template-columns:1fr auto;gap:10px}
+    input{
+      width:100%;border-radius:14px;border:1px solid var(--border);
+      background:var(--surface-2);color:var(--text);padding:15px 16px;font-size:15px;outline:none;
+    }
+    input:focus{border-color:var(--amber)}
+    button{
+      border:0;border-radius:14px;background:var(--amber);color:#140d07;
+      font-weight:700;cursor:pointer;padding:13px 18px;
+    }
+    .ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+    .hero-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+    .tile,.stat,.bakery-row,.note{
+      background:rgba(13,10,7,.48);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:16px;
+    }
+    .tile-label,.stat-label,.mini-label{
+      color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.16em;
+    }
+    .tile-value,.stat-value{
+      margin-top:8px;font-size:28px;font-weight:700;color:var(--amber-soft);
+    }
+    .layout{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;margin-top:18px}
+    .card{padding:22px}
+    .section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+    .section-title{margin:0;font-size:18px}
+    .meta,.hint,.footnote{color:var(--muted);font-size:13px;line-height:1.6}
+    .status{
+      margin-top:12px;padding:12px 14px;border-radius:12px;border:1px solid var(--border);
+      background:var(--surface-2);color:var(--muted);font-size:13px;display:none
+    }
+    .status.show{display:block}
+    .status.error{color:#ffd3d3;border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.08)}
+    .status.success{color:#c7f9d5;border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.08)}
+    .status.warn{color:#ffe6af;border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.08)}
+    .player{display:none}
+    .player.show{display:block}
+    .player-head{display:flex;gap:14px;align-items:center;margin-bottom:16px}
+    .avatar{
+      width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+      background:var(--surface-3);border:1px solid var(--border);color:var(--amber-soft);font-weight:700
+    }
+    .player-name{font-size:22px;font-weight:700}
+    .player-meta{margin-top:4px;color:var(--muted);font-size:13px;line-height:1.5;word-break:break-word}
+    .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+    .stat-value{font-size:24px}
+    .cookie{color:var(--cookie)}
+    .amber{color:var(--amber-soft)}
+    .positive{color:var(--green)}
+    .negative{color:var(--red)}
+    .list{display:grid;gap:10px}
+    .bakery-row{
+      display:grid;grid-template-columns:auto 1fr auto auto;gap:12px;align-items:center;padding:14px
+    }
+    .rank{
+      width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+      border-radius:12px;background:var(--surface-3);font-weight:700;color:var(--amber-soft)
+    }
+    .bakery-name{font-weight:700;font-size:16px}
+    .bakery-sub{margin-top:4px;color:var(--muted);font-size:13px}
+    .bakery-cookies{color:var(--cookie);font-weight:700;font-size:14px;white-space:nowrap}
+    .bakery-payout{color:var(--amber-soft);font-weight:700;font-size:14px;white-space:nowrap}
+    .note{margin-top:10px}
+    .split{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .mini-value{margin-top:6px;font-size:18px;font-weight:700}
+    code{color:#ffdca3}
+    @media (max-width: 900px){
+      .hero-grid,.layout,.split{grid-template-columns:1fr}
+    }
+    @media (max-width: 640px){
+      .search-row,.stats{grid-template-columns:1fr}
+      .bakery-row{grid-template-columns:auto 1fr}
+      .bakery-cookies,.bakery-payout{grid-column:2}
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="eyebrow">Rugpull Bakery ROI Dashboard</div>
+      <h1>See COOK, current payout and the path to real ROI.</h1>
+      <p class="sub">
+        Enter a wallet address or an Abstract portal name. This Phase 1 build focuses on the live public data:
+        active season, leaderboard, player bakery snapshot and current payout estimate.
+      </p>
+      <div class="search-wrap">
+        <div class="search-row">
+          <input id="searchInput" placeholder="0x... wallet address or portal name">
+          <button id="lookupBtn">Analyze Player</button>
+        </div>
+        <div class="hint">
+          Wallet lookup is live now. Portal-name lookup is attempted through Portal search and falls back cleanly if the profile cannot be resolved.
+        </div>
+        <div class="status" id="playerStatus"></div>
+      </div>
+      <div class="hero-grid">
+        <div class="tile">
+          <div class="tile-label">Current Prize Pool</div>
+          <div class="tile-value" id="heroPool">Loading...</div>
+        </div>
+        <div class="tile">
+          <div class="tile-label">Season</div>
+          <div class="tile-value" id="heroSeason">--</div>
+        </div>
+        <div class="tile">
+          <div class="tile-label">Registrations</div>
+          <div class="tile-value" id="heroRegs">--</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="card">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Player ROI Panel</h2>
+            <div class="meta">Current COOK, bakery context, payout estimate and ROI readiness.</div>
+          </div>
+        </div>
+
+        <div class="player" id="playerPanel">
+          <div class="player-head">
+            <div class="avatar" id="playerAvatar">BT</div>
+            <div>
+              <div class="player-name" id="playerName">Player</div>
+              <div class="player-meta" id="playerMeta"></div>
+            </div>
+          </div>
+
+          <div class="stats" id="playerStats"></div>
+
+          <div class="split">
+            <div class="note">
+              <div class="mini-label">Real Tx Fee</div>
+              <div class="mini-value" id="txFeeValue">Coming soon</div>
+              <div class="meta">This needs explorer or indexer support. It is the next major product step.</div>
+            </div>
+            <div class="note">
+              <div class="mini-label">Net Position</div>
+              <div class="mini-value" id="netValue">Waiting for tx fee</div>
+              <div class="meta">Estimated payout is live. Final ROI will become exact once real fee tracking is added.</div>
+            </div>
+          </div>
+
+          <div class="note">
+            <div class="mini-label">Tx Counting Logic</div>
+            <div class="mini-value">3-contract verification</div>
+            <div class="footnote">
+              Tx count and fee are based on successful wallet transactions sent to these 3 Rugpull Bakery contracts:
+              <code>0xa8a91a...</code>, <code>0xaeb8ee...</code>, <code>0x080f7a...</code>.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Live Leaderboard</h2>
+            <div class="meta">Top bakeries with current pool-based payout estimate.</div>
+          </div>
+          <button class="ghost" id="refreshBtn">Refresh</button>
+        </div>
+        <div class="status" id="leaderboardStatus"></div>
+        <div class="list" id="leaderboardList"></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const PROXY  = "/api/proxy?url=";
+    const TRPC   = "https://www.rugpullbakery.com/api/trpc";
+    const PORTAL = "https://backend.portal.abs.xyz/api";
+    const EXPLORER_API  = "https://api.etherscan.io/v2/api";
+    const EXPLORER_KEY  = "WX9V4F65TXJNZYESEI4NWAFFRNID61KIUT";
+    const PAYOUT_SPLITS = [0.7, 0.2, 0.1];
+    const GAMEPLAY_CONTRACTS = new Set([
+      "0x080f7ad315ab65f02a821f072170d469d444a6c4",
+      "0xa8a91ac36dd6a1055d36ba18ae91348f3aa3d7f9",
+      "0xaeb8eef0deaba98e3b65f6311dd7f997e72b837a"
+    ]);
+
+    const state = { season: null, bakeries: [], poolEth: null };
+
+    /* ── helpers ── */
+    function setStatus(el, msg, tone) {
+      if (!msg) { el.className = "status"; el.textContent = ""; return; }
+      el.className = "status show" + (tone ? " " + tone : "");
+      el.textContent = msg;
+    }
+    async function proxyFetch(url) {
+      const r = await fetch(PROXY + encodeURIComponent(url));
+      const ct = r.headers.get("content-type") || "";
+      const p  = ct.includes("application/json") ? await r.json() : await r.text();
+      if (!r.ok) throw new Error(typeof p === "string" ? p : p?.error || JSON.stringify(p));
+      return p;
+    }
+    async function trpc(proc, input) {
+      const inp = JSON.stringify({ 0: { json: input === undefined ? null : input } });
+      return proxyFetch(TRPC + "/" + proc + "?batch=1&input=" + encodeURIComponent(inp));
+    }
+    function extract(payload) {
+      try {
+        const arr = Array.isArray(payload) ? payload : [payload];
+        return arr[0].result.data.json;
+      } catch(e) { return null; }
+    }
+    function toNum(v) {
+      if (v == null || v === "") return null;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    }
+    function fmtN(v, d=0) {
+      const n = toNum(v); if (n === null) return "--";
+      return n.toLocaleString("en-US", { maximumFractionDigits:d, minimumFractionDigits: d>0 ? Math.min(2,d) : 0 });
+    }
+    function fmtE(v, d=5) {
+      const n = toNum(v); return n === null ? "--" : n.toFixed(d) + " ETH";
+    }
+    function shortAddr(v) { return v ? v.slice(0,6)+"..."+v.slice(-4) : "--"; }
+    function initials(v)  { const c=(v||"").replace(/[^a-zA-Z0-9]/g,"").slice(0,2); return c?c.toUpperCase():"BT"; }
+    function isWallet(v)  { return /^0x[a-fA-F0-9]{40}$/.test(v); }
+    function esc(v) {
+      return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+
+    /* ── leaderboard ── */
+    function renderLeaderboard() {
+      const list = document.getElementById("leaderboardList");
+      document.getElementById("heroSeason").textContent = state.season?.id ? "#" + state.season.id : "--";
+      document.getElementById("heroPool").textContent   = state.poolEth != null ? fmtE(state.poolEth, 4) : "Unavailable";
+      document.getElementById("heroRegs").textContent   = fmtN(state.season?.registrations ?? state.registrations, 0);
+      if (!state.bakeries.length) { list.innerHTML = '<div class="meta">No data.</div>'; return; }
+      list.innerHTML = state.bakeries.slice(0,10).map((b,i) => {
+        const rank   = i + 1;
+        const payout = state.poolEth != null && rank <= 3 ? state.poolEth * PAYOUT_SPLITS[rank-1] : null;
+        const cook   = toNum(b.txCount) ?? toNum(b.rawTxCount) ?? 0;
+        const medal  = rank===1?"🥇":rank===2?"🥈":rank===3?"🥉":"#"+rank;
+        return `<div class="bakery-row">
+          <div class="rank">${medal}</div>
+          <div>
+            <div class="bakery-name">${esc(b.name||"Bakery #"+rank)}</div>
+            <div class="bakery-sub">Üye: ${esc(fmtN(b.memberCount,0))} | ID: ${esc(b.id??"--")}</div>
+          </div>
+          <div class="bakery-cookies">${esc(fmtN(cook,0))} COOK</div>
+          <div class="bakery-payout">${esc(payout==null?"--":fmtE(payout,4))}</div>
+        </div>`;
+      }).join("");
+    }
+
+    async function loadLeaderboard() {
+      const st = document.getElementById("leaderboardStatus");
+      setStatus(st, "Yukleniyor...", "");
+      try {
+        const [sRaw, tRaw] = await Promise.all([
+          trpc("leaderboard.getActiveSeason"),
+          trpc("leaderboard.getTopBakeries", { limit: 10 })
+        ]);
+        const sJson = extract(sRaw);
+        const tJson = extract(tRaw);
+        // season json = [{id, prizePool, startTime, ...}]
+        state.season   = Array.isArray(sJson) ? sJson[0] : sJson;
+        // top json = {items:[...]}
+        state.bakeries = tJson?.items || (Array.isArray(tJson) ? tJson : []);
+        const pp = toNum(state.season?.prizePool);
+        state.poolEth  = pp != null && pp > 0 ? pp / 1e18 : null;
+        renderLeaderboard();
+        setStatus(st, "Guncellendi.", "success");
+      } catch(e) {
+        document.getElementById("leaderboardList").innerHTML = "";
+        setStatus(st, "Hata: " + e.message, "error");
+      }
+    }
+
+    /* ── gas fee hesabi ── */
+    async function fetchGasFee(address, seasonStartTime) {
+      const lowerBound = Number(seasonStartTime || 0);
+      let page = 1, totalFee = 0, txCount = 0;
+      while (page <= 50) {
+        const url = `${EXPLORER_API}?chainid=2741&module=account&action=txlist` +
+          `&address=${encodeURIComponent(address)}&sort=desc&page=${page}&offset=100&apikey=${EXPLORER_KEY}`;
+        const r = await fetch(url);
+        const d = await r.json();
+        if (d.status !== "1" || !Array.isArray(d.result) || !d.result.length) break;
+        let foundOld = false;
+        for (const tx of d.result) {
+          const to = (tx.to||"").toLowerCase();
+          if (!GAMEPLAY_CONTRACTS.has(to)) continue;
+          if (tx.isError === "1") continue;
+          const gasUsed  = Number(tx.gasUsed  || 0);
+          const gasPrice = Number(tx.gasPrice || 0);
+          if (!gasUsed || !gasPrice) continue;
+          const ts = Number(tx.timeStamp || 0);
+          if (ts < lowerBound) { foundOld = true; continue; }
+          totalFee += (gasUsed * gasPrice) / 1e18;
+          txCount  += 1;
+        }
+        if (foundOld || d.result.length < 100) break;
+        page++;
+      }
+      return { totalFee, txCount };
+    }
+
+    /* ── portal isim cozumleme ── */
+    async function resolvePortalName(query) {
+      // Abscope ile dene
+      try {
+        const r = await fetch(`https://abscope.live/api/suggest?query=${encodeURIComponent(query)}&suggest=1&limit=6`);
+        if (r.ok) {
+          const d = await r.json();
+          const suggestions = d?.suggestions || [];
+          const exact = suggestions.find(s => (s.username||"").toLowerCase()===query.toLowerCase()) || suggestions[0];
+          if (exact?.resolvedWallet) return { address: exact.resolvedWallet, name: exact.username, avatar: exact.avatar||null };
+        }
+      } catch(e) {}
+      // Portal search ile dene
+      for (const url of [
+        `${PORTAL}/search/users?q=${encodeURIComponent(query)}&limit=5`,
+        `${PORTAL}/search/users?query=${encodeURIComponent(query)}&limit=5`
+      ]) {
+        try {
+          const d = await proxyFetch(url);
+          const users = d?.users || d?.results || d?.items || [];
+          if (Array.isArray(users) && users.length) {
+            const u = users.find(x => (x.name||x.username||"").toLowerCase()===query.toLowerCase()) || users[0];
+            const addr = u.walletAddress || u.address || u.wallet || null;
+            if (addr) return { address: addr, name: u.name||u.username||null, avatar: u.avatar||null };
+          }
+        } catch(e) {}
+      }
+      throw new Error("Portal adi cozumlenemedi.");
+    }
+
+    /* ── oyuncu render ── */
+    function renderPlayer(data, name, avatar, address, feeInfo) {
+      // data = getMyBakeryInit json
+      // { season:{...}, player:{effectiveTxCount, txCount, bakedTxCount, bakeryId, ...}, bakery:{id, name, txCount, ...}, rank:null }
+      const player  = data?.player  || {};
+      const bakery  = data?.bakery  || data?.clan || {};
+      const season  = data?.season  || state.season || {};
+
+      // Oyuncunun cook sayisi - effectiveTxCount en dogru deger
+      const myCook  = toNum(player.effectiveTxCount) ?? toNum(player.bakedTxCount) ?? toNum(player.txCount) ?? 0;
+      // Bakery toplam cook
+      const bakCook = toNum(bakery.txCount) ?? toNum(bakery.rawTxCount) ?? 0;
+      // Oyuncunun bakery'deki payi
+      const share   = myCook > 0 && bakCook > 0 ? myCook / bakCook : null;
+
+      // Bakery leaderboard sirasi - once rank field, yoksa bakeries listesinden bul
+      let rank = toNum(data?.rank) ?? 0;
+      if (!rank && bakery.id) {
+        const idx = state.bakeries.findIndex(b => String(b.id) === String(bakery.id));
+        if (idx >= 0) rank = idx + 1;
+      }
+
+      // Havuz ve odul
+      const pool    = toNum(season.prizePool) != null ? toNum(season.prizePool) / 1e18 : state.poolEth;
+      const bakPay  = rank > 0 && rank <= 3 && pool != null ? pool * PAYOUT_SPLITS[rank-1] : null;
+      const myPay   = bakPay != null && share != null ? bakPay * share : null;
+
+      // Gas maliyeti ve net kar/zarar
+      const fee     = feeInfo?.totalFee ?? null;
+      const net     = myPay != null && fee != null ? myPay - fee : null;
+
+      // Avatar
+      const avatarEl = document.getElementById("playerAvatar");
+      avatarEl.textContent = initials(name || address);
+      if (avatar) {
+        avatarEl.style.backgroundImage = `url("${avatar}")`;
+        avatarEl.style.backgroundSize  = "cover";
+        avatarEl.style.backgroundPosition = "center";
+        avatarEl.style.color = "transparent";
+      } else {
+        avatarEl.style.backgroundImage = "none";
+        avatarEl.style.color = "";
+      }
+
+      document.getElementById("playerName").textContent = name || shortAddr(address);
+      document.getElementById("playerMeta").textContent =
+        address + " | Bakery: " + (bakery.name||"--") + " | Sira: " + (rank > 0 ? "#"+rank : "Top 10 disinda");
+
+      const stats = [
+        { label: "Toplam COOK (Efektif)",  value: fmtN(myCook, 0),                                    tone: "cookie"   },
+        { label: "Ham TX Sayisi",          value: fmtN(player.txCount, 0),                            tone: "cookie"   },
+        { label: "Bakery Sirasi",          value: rank > 0 ? "#"+rank : "Top 10 Disinda",             tone: rank>0&&rank<=3?"amber":"" },
+        { label: "Bakery Payin",           value: share != null ? (share*100).toFixed(3)+"%" : "--",  tone: share!=null?"amber":""   },
+        { label: "Odül Havuzu",            value: pool != null ? fmtE(pool, 4) : "--",                tone: "amber"    },
+        { label: "Tahmini Ödülün",         value: myPay != null ? fmtE(myPay, 5) : "--",             tone: myPay!=null?"amber":""   },
+        { label: "Gas Maliyeti",           value: fee != null ? fmtE(fee, 5) + " ("+fmtN(feeInfo.txCount,0)+" tx)" : "Hesaplaniyor...", tone: "negative" },
+        { label: "Net Kar / Zarar",        value: net != null ? (net>=0?"+":"")+fmtE(net,5) : "--",  tone: net==null?"":net>=0?"positive":"negative" },
+      ];
+
+      document.getElementById("playerStats").innerHTML = stats.map(s =>
+        `<div class="stat"><div class="stat-label">${esc(s.label)}</div>` +
+        `<div class="stat-value ${s.tone||""}">${esc(s.value)}</div></div>`
+      ).join("");
+
+      // Eski fee/net elementleri varsa guncelle
+      const txFeeEl = document.getElementById("txFeeValue");
+      const netEl   = document.getElementById("netValue");
+      if (txFeeEl) txFeeEl.textContent = fee != null ? fmtE(fee,5) : "Hesaplaniyor...";
+      if (netEl)   netEl.textContent   = net != null ? (net>=0?"+":"")+fmtE(net,5) : "--";
+
+      document.getElementById("playerPanel").classList.add("show");
+    }
+
+    /* ── ana arama ── */
+    async function analyzePlayer() {
+      const raw    = document.getElementById("searchInput").value.trim();
+      const status = document.getElementById("playerStatus");
+      document.getElementById("playerPanel").classList.remove("show");
+
+      if (!raw) { setStatus(status, "Adres veya portal adi girin.", "error"); return; }
+      setStatus(status, "Aranıyor...", "");
+
+      try {
+        let address = raw, name = null, avatar = null;
+
+        if (!isWallet(raw)) {
+          setStatus(status, "Portal adi cozumlenıyor...", "");
+          const resolved = await resolvePortalName(raw);
+          address = resolved.address;
+          name    = resolved.name;
+          avatar  = resolved.avatar;
+        }
+
+        if (!isWallet(address)) throw new Error("Gecerli bir cuzdan adresi cozumlenemedi.");
+
+        setStatus(status, "Bakery verisi aliniyor...", "");
+        const bakeryRaw = await trpc("leaderboard.getMyBakeryInit", { address });
+        const data      = extract(bakeryRaw);
+
+        if (!data) throw new Error("Bu adrese ait oyuncu verisi bulunamadi.");
+
+        // Portal profili
+        if (!name) {
+          try {
+            const pRes = await proxyFetch(PORTAL + "/user/address/" + encodeURIComponent(address));
+            const u = pRes?.user || pRes;
+            name   = u?.name || u?.username || null;
+            avatar = u?.overrideProfilePictureUrl || u?.profilePictureUrl || u?.avatar || null;
+          } catch(e) {}
+        }
+
+        // Gas fee hesapla
+        const startTime = data?.season?.startTime ?? state.season?.startTime;
+        let feeInfo = { totalFee: null, txCount: 0 };
+        if (startTime) {
+          setStatus(status, "Gas maliyeti hesaplaniyor...", "");
+          try { feeInfo = await fetchGasFee(address, startTime); } catch(e) {}
+        }
+
+        renderPlayer(data, name, avatar, address, feeInfo);
+        setStatus(status, "Tamamlandi.", "success");
+      } catch(e) {
+        setStatus(status, "Hata: " + e.message, "error");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      document.getElementById("refreshBtn").addEventListener("click", loadLeaderboard);
+      document.getElementById("lookupBtn").addEventListener("click", analyzePlayer);
+      document.getElementById("searchInput").addEventListener("keydown", function(e) {
+        if (e.key === "Enter") analyzePlayer();
+      });
+      loadLeaderboard();
+      setInterval(loadLeaderboard, 30000);
+    });
+  </script>
+</body>
+</html>
