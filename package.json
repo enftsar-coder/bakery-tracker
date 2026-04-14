@@ -1,0 +1,23 @@
+{
+  "name": "bakery-tracker",
+  "version": "1.0.0",
+  "description": "Rugpull Bakery Calculator - Track and analyze bakery metrics",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/enftsar-coder/bakery-tracker.git"
+  },
+  "keywords": ["bakery", "calculator", "analytics"],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/enftsar-coder/bakery-tracker/issues"
+  },
+  "homepage": "https://github.com/enftsar-coder/bakery-tracker#readme",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
